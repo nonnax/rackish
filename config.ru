@@ -3,6 +3,7 @@
 require_relative 'lib/rackish'
 
 get '/', name: 'ronald' do |env|
+    res.headers['Content-type']='application/json'
     "hello (#{env})"
 end
 get '/red' do
