@@ -8,7 +8,7 @@ module Rackish
     attr :routes
     def push(method, path, **params, &block)
      res = Rack::Response.new block
-     routes[[method, path]] = res.finish
+     routes[[method, path]] = {response: res.finish, params: params}
     end
 
     def get(path, **params, &block) push('GET', path, **params, &block) end
@@ -19,9 +19,9 @@ class App
   attr :env, :req, :res
   def routes() ::Rackish.routes end
   def _call(env)
-    if match=routes[env.values_at('REQUEST_METHOD', 'PATH_INFO')]
-      _, _, body = match
-      res.write instance_exec(req.params, &body)
+    if match = routes[env.values_at('REQUEST_METHOD', 'PATH_INFO')]
+      _, _, body = match[:response]
+      res.write instance_exec(req.params.merge(match[:params]), &body)
       return res.finish
     end
     
